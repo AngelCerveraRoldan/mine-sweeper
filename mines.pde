@@ -73,3 +73,16 @@ boolean bomb_check (int[] x_arr, int x, int[] y_arr, int y) {
 
     return false;
 }
+
+// Click on what you think isnt a bomb
+void mouseClicked () {
+    // Save the coordinate of the mouse when it clicks
+    int x_clicked = (int) (mouseX / (width / total_tiles));
+    int y_clicked = (int) (mouseY / (width / total_tiles));
+
+    int tile_index = (9 * x_clicked) + y_clicked;
+
+    println(tile_index + ", x: " + x_clicked + ", y: " + y_clicked + ", bomb: " + board_tiles[tile_index].bomb);
+
+    board_tiles[tile_index].clicked();
+}
