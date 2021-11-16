@@ -29,5 +29,10 @@ class Tile {
             fill(80, 80, 80); 
             square(x, y, total_screen / total_tiles);
         }
+
+
+        // TODO: Show this only after user clicks on tile, make it look nicer
+        fill(255, 255, 255);
+        text(neighbours, x + 10, y + 30);
     }
 }
