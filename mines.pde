@@ -13,6 +13,10 @@ int[] bomb_y_coord = new int[bomb_count];
 void setup() {
     size(800, 800);
 
+    println(0 % total_tiles);
+    println((9 - 1)% total_tiles);
+    println((18 - 1)% total_tiles);
+
     board_tiles = new Tile[(int) Math.pow(total_tiles, 2)];
 
     // Generate coordinates for the bombs
@@ -40,6 +44,17 @@ void setup() {
             board_tiles[tile_index++] = new Tile(vertical * (width / total_tiles), horizontal * (width / total_tiles), is_bomb_coordinate);
         }
     }
+
+    for (int i = 0; i < Math.pow(total_tiles, 2); i++) {
+        if (board_tiles[i].bomb) {
+            count_around(i);
+        }
+    }
+
+    for (int i = 0; i < Math.pow(total_tiles, 2); i++) {
+        println(i + " has " + board_tiles[i].touching_bomb_count + " bombs surrounding it.");
+    }
+
 }
 
 void draw () {
@@ -82,7 +97,61 @@ void mouseClicked () {
 
     int tile_index = (9 * x_clicked) + y_clicked;
 
-    println(tile_index + ", x: " + x_clicked + ", y: " + y_clicked + ", bomb: " + board_tiles[tile_index].bomb);
+    if (mouseButton == LEFT) {
+        // Mark as not bomb when the user left clicks on square
+        // If this returns true, it means the user clicked on a bomb, game should be over
+        board_tiles[tile_index].is_safe();
 
-    board_tiles[tile_index].clicked();
+        // TODO: Make a function that will click in all surrounding tiles if the tile being clicked on has a surrounding bomb count of 0 (recursive function?)
+    } else if (mouseButton == RIGHT) {
+        // Mark as bomb when the user right clicks on square
+        println("Wrong mouse button!");
+    }
+}
+
+// Try to pass a function as a parameter to the following function, and make the function run that parameter in all existing surrounding boxes
+
+// Once the array has been made, count the ammount of bombs surrounding 
+void count_around (int tile_index) {
+    boolean right = !((tile_index - 8) % total_tiles == 0);
+    boolean left = !(tile_index % total_tiles == 0);
+
+    boolean below = (tile_index < (Math.pow(total_tiles, 2) - total_tiles));
+    boolean above = (tile_index > (total_tiles - 1));
+    
+    // If the bomb is not on the top row, it should add a bomb count to the tile above it
+    if (above) {
+        board_tiles[tile_index - (total_tiles)].neighbour_inc();
+
+        if (right) {
+            board_tiles[(tile_index - (total_tiles)) + 1].neighbour_inc();
+        }
+
+        if (left) {
+            board_tiles[(tile_index - (total_tiles)) - 1].neighbour_inc();         
+        }
+    }
+
+    // If the bomb is not on the bottom row, it should have a tile below it
+    if (below) {
+        board_tiles[tile_index + (total_tiles)].neighbour_inc();
+
+        if (right) {
+            board_tiles[(tile_index + (total_tiles)) + 1].neighbour_inc();
+        }
+
+        if (left) {
+            board_tiles[(tile_index + (total_tiles)) - 1].neighbour_inc();
+        }
+    }
+
+    //Should have a tile to the right
+    if (right) {
+        board_tiles[tile_index + 1].neighbour_inc();
+    }
+
+    //Should have a tile to the left
+    if (left) {
+        board_tiles[tile_index - 1].neighbour_inc(); // Seems to be running for 80
+    }
 }

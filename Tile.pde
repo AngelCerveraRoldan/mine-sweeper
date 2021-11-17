@@ -1,14 +1,21 @@
 class Tile {
+    // Is the tile a bomb
     boolean bomb;
-    int neighbours;
 
+    // Has the user marked the tile as a bomb
+    boolean marked_as_bomb = false;
+
+    // Number of neighbouring bombs
+    int touching_bomb_count;
+
+    // Top left coord
     int x;
     int y;
 
     // When user clicks, run a function that will:
     // -> End the game if it is a bomb
     // -> Show neighbour number if it isnt a bomb    
-    boolean been_clicked = false;
+    boolean marked_safe = false;
 
     Tile (int x_, int y_, boolean bomb_) {
         x = x_;
@@ -19,11 +26,13 @@ class Tile {
 
     // Increase the number of neighbours this tile has
     void neighbour_inc () {
-        neighbours++;
+        touching_bomb_count++;
     }    
 
-    void clicked () {
-        been_clicked = true;
+    boolean is_safe () {
+        marked_safe = true;
+        
+        return bomb;                
     }
 
     // Make a method to increase the neighbout count of all surrounding tiles, this will be more efficient than having each tile check 
@@ -31,19 +40,20 @@ class Tile {
 
     void display(float total_screen, float total_tiles) {
         // Total tiles is the number of tiles per row / col
-        if (!been_clicked) {
+        if (!marked_safe) {
             fill(80, 80, 80); 
             square(x, y, total_screen / total_tiles);
         }
 
-        if (been_clicked && !bomb) {
+        if (marked_safe && !bomb) {
             // TODO: Show this only after user clicks on tile, make it look nicer
             // TODO: If surrounding count is 0, display all tiles around it <----------- IMPORTANT FOR FULL FUNCTIONALITY!!!!!
             fill(0, 255, 120);
             square(x, y, total_screen / total_tiles);
 
             fill(120, 120, 120);
-            text(neighbours, x + 10, y + 30);
+            textSize(50);
+            text(touching_bomb_count, x + (width / (2 * total_tiles)) - 12, y + (width / (2 * total_tiles)) + 12);
         }
     }
 }
