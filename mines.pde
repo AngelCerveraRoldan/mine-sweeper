@@ -1,10 +1,11 @@
 Tile[] board_tiles;
 
+boolean lost = false;
 boolean hard_mode = false;
 
 // Hard mode is an 18 * 18 tile board, easy mode is a 9 * 9 tile game
-int total_tiles = (hard_mode ? 18 : 9);
-int bomb_count = total_tiles - 1;
+int total_tiles = hard_mode ? 25 : 18; // MAX 20!!
+int bomb_count = total_tiles + 5;
 
 // TODO: This two arrays should really be related
 int[] bomb_x_coord = new int[bomb_count];
@@ -12,10 +13,6 @@ int[] bomb_y_coord = new int[bomb_count];
 
 void setup() {
     size(800, 800);
-
-    println(0 % total_tiles);
-    println((9 - 1)% total_tiles);
-    println((18 - 1)% total_tiles);
 
     board_tiles = new Tile[(int) Math.pow(total_tiles, 2)];
 
@@ -32,11 +29,13 @@ void setup() {
     
     // Make the board
     int tile_index = 0;
+
     for (int vertical = 0; vertical < total_tiles; vertical++) {
         for (int horizontal = 0; horizontal < total_tiles; horizontal ++) {
             boolean is_bomb_coordinate = false;
 
             // Check if bomb_x_coord[n] = horizontal and bomb_y_coord[n] = vertical
+            // Check if the tile should be a bomb
             if (bomb_check(bomb_x_coord, horizontal, bomb_y_coord, vertical)) {
                 is_bomb_coordinate = true;
             } 
@@ -44,36 +43,20 @@ void setup() {
             board_tiles[tile_index++] = new Tile(vertical * (width / total_tiles), horizontal * (width / total_tiles), is_bomb_coordinate);
         }
     }
-
+    
+    // Find the number of bombs surrounding each tiles
     for (int i = 0; i < Math.pow(total_tiles, 2); i++) {
         if (board_tiles[i].bomb) {
             count_around(i);
         }
     }
-
-    for (int i = 0; i < Math.pow(total_tiles, 2); i++) {
-        println(i + " has " + board_tiles[i].touching_bomb_count + " bombs surrounding it.");
-    }
-
 }
 
 void draw () {
     // Display the board
     for (Tile tile : board_tiles) {
-        tile.display(width, (float) total_tiles);
+        tile.display(width, (float) total_tiles, lost);
     }
-}
-
-// Function to check if an array contains an integer
-// NO GENERICS IN PROCESSING :(
-boolean array_contains(int[] arr, int find) {
-    for (int num : arr) {
-        if (num == find) {
-            return true;
-        }
-    }
-
-    return false;
 }
 
 // TODO: Change the way we check if a tile should or shouln't be a bomb, as it is very inefficient
@@ -95,30 +78,50 @@ void mouseClicked () {
     int x_clicked = (int) (mouseX / (width / total_tiles));
     int y_clicked = (int) (mouseY / (width / total_tiles));
 
-    int tile_index = (9 * x_clicked) + y_clicked;
+    int tile_index = (total_tiles * x_clicked) + y_clicked;
 
     if (mouseButton == LEFT) {
         // Mark as not bomb when the user left clicks on square
         // If this returns true, it means the user clicked on a bomb, game should be over
-        board_tiles[tile_index].is_safe();
+        lost = board_tiles[tile_index].is_safe();
 
         // TODO: Make a function that will click in all surrounding tiles if the tile being clicked on has a surrounding bomb count of 0 (recursive function?)
+        board_tiles[tile_index].marked_safe = true;  
+
+        if (board_tiles[tile_index].touching_bomb_count == 0) {
+            click_around(tile_index);
+        }
     } else if (mouseButton == RIGHT) {
         // Mark as bomb when the user right clicks on square
-        println("Wrong mouse button!");
+        board_tiles[tile_index].marked_as_bomb = !board_tiles[tile_index].marked_as_bomb;
     }
+}
+
+// Only works for surrounded tiles atm
+void click_around (int index) {
+    boolean right = !((index - 8) % total_tiles == 0);
+    boolean left = !(index % total_tiles == 0);
+
+    boolean below = (index < (Math.pow(total_tiles, 2) - total_tiles));
+    boolean above = (index > (total_tiles - 1));
+
+
+    // HOW TO DO THIS PROPERLY?
+
+    // Array with clicked values, if its 0 add all surroundings
 }
 
 // Try to pass a function as a parameter to the following function, and make the function run that parameter in all existing surrounding boxes
 
 // Once the array has been made, count the ammount of bombs surrounding 
 void count_around (int tile_index) {
+    // TODO: Change variable names, right is down because of how the array is set up
     boolean right = !((tile_index - 8) % total_tiles == 0);
     boolean left = !(tile_index % total_tiles == 0);
 
     boolean below = (tile_index < (Math.pow(total_tiles, 2) - total_tiles));
     boolean above = (tile_index > (total_tiles - 1));
-    
+
     // If the bomb is not on the top row, it should add a bomb count to the tile above it
     if (above) {
         board_tiles[tile_index - (total_tiles)].neighbour_inc();
@@ -154,4 +157,17 @@ void count_around (int tile_index) {
     if (left) {
         board_tiles[tile_index - 1].neighbour_inc(); // Seems to be running for 80
     }
+}
+
+
+// Function to check if an array contains an integer
+// NO GENERICS IN PROCESSING :(
+boolean array_contains(int[] arr, int find) {
+    for (int num : arr) {
+        if (num == find) {
+            return true;
+        }
+    }
+
+    return false;
 }

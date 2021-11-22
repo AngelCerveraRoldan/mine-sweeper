@@ -1,4 +1,19 @@
 class Tile {
+    PImage unclicked_tile = loadImage("tile_img/facingDown.png");
+
+    PImage zero_bomb = loadImage("tile_img/0.png");
+    PImage one_bomb = loadImage("tile_img/1.png");
+    PImage two_bomb = loadImage("tile_img/2.png");
+    PImage three_bomb = loadImage("tile_img/3.png");
+    PImage four_bomb = loadImage("tile_img/4.png");
+    PImage five_bomb = loadImage("tile_img/5.png");
+    PImage six_bomb = loadImage("tile_img/6.png");
+    PImage seven_bomb = loadImage("tile_img/7.png");
+    PImage eight_bomb = loadImage("tile_img/8.png");
+
+    PImage flagged = loadImage("tile_img/flagged.png");
+    PImage bomb_clicked = loadImage("tile_img/bomb.png");
+
     // Is the tile a bomb
     boolean bomb;
 
@@ -38,22 +53,50 @@ class Tile {
     // Make a method to increase the neighbout count of all surrounding tiles, this will be more efficient than having each tile check 
     // if their neighbours have a bomb        
 
-    void display(float total_screen, float total_tiles) {
+    void display(float total_screen, float total_tiles, boolean lost) {
         // Total tiles is the number of tiles per row / col
-        if (!marked_safe) {
+
+        // Tiles that havent been clicked on
+        if (!marked_safe) { 
             fill(80, 80, 80); 
-            square(x, y, total_screen / total_tiles);
+            // TODO: CHange this to an image
+            image(unclicked_tile, x, y, total_screen / total_tiles, total_screen / total_tiles);
         }
 
         if (marked_safe && !bomb) {
             // TODO: Show this only after user clicks on tile, make it look nicer
             // TODO: If surrounding count is 0, display all tiles around it <----------- IMPORTANT FOR FULL FUNCTIONALITY!!!!!
-            fill(0, 255, 120);
-            square(x, y, total_screen / total_tiles);
 
-            fill(120, 120, 120);
-            textSize(50);
-            text(touching_bomb_count, x + (width / (2 * total_tiles)) - 12, y + (width / (2 * total_tiles)) + 12);
+            if (touching_bomb_count == 0) {
+                image(zero_bomb, x, y, total_screen / total_tiles, total_screen / total_tiles);
+            } else if (touching_bomb_count == 1) {
+                image(one_bomb, x, y, total_screen / total_tiles, total_screen / total_tiles);
+            } else if (touching_bomb_count == 2) {
+                image(two_bomb, x, y, total_screen / total_tiles, total_screen / total_tiles);
+            } else if (touching_bomb_count == 3) {
+                image(three_bomb, x, y, total_screen / total_tiles, total_screen / total_tiles);
+            } else if (touching_bomb_count == 4) {
+                image(four_bomb, x, y, total_screen / total_tiles, total_screen / total_tiles);
+            } else if (touching_bomb_count == 5) {
+                image(five_bomb, x, y, total_screen / total_tiles, total_screen / total_tiles);
+            }else if (touching_bomb_count == 6) {
+                image(six_bomb, x, y, total_screen / total_tiles, total_screen / total_tiles);
+            } else if (touching_bomb_count == 7) {
+                image(seven_bomb, x, y, total_screen / total_tiles, total_screen / total_tiles);
+            } else if (touching_bomb_count == 8) {
+                image(eight_bomb, x, y, total_screen / total_tiles, total_screen / total_tiles);
+            } 
+        }
+
+        if (marked_as_bomb) {
+            image(flagged, x, y, total_screen / total_tiles, total_screen / total_tiles);
+        }
+
+        // Clicked on the bomb
+        if (lost && bomb) {
+            fill(155, 155, 155);
+            //square(x, y, total_screen / total_tiles);
+            image(bomb_clicked, x, y, total_screen / total_tiles, total_screen / total_tiles);
         }
     }
 }
