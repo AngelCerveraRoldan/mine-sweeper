@@ -55,6 +55,8 @@ class Tile {
 
     void display(float total_screen, float total_tiles, boolean lost) {
         // Total tiles is the number of tiles per row / col
+        float tile_width = total_screen / total_tiles;
+        PImage img;
 
         // Tiles that havent been clicked on
         if (!marked_safe) { 
@@ -68,24 +70,27 @@ class Tile {
             // TODO: If surrounding count is 0, display all tiles around it <----------- IMPORTANT FOR FULL FUNCTIONALITY!!!!!
 
             if (touching_bomb_count == 0) {
-                image(zero_bomb, x, y, total_screen / total_tiles, total_screen / total_tiles);
+                img = zero_bomb;
             } else if (touching_bomb_count == 1) {
-                image(one_bomb, x, y, total_screen / total_tiles, total_screen / total_tiles);
+                img = one_bomb;
             } else if (touching_bomb_count == 2) {
-                image(two_bomb, x, y, total_screen / total_tiles, total_screen / total_tiles);
+                img = two_bomb;
             } else if (touching_bomb_count == 3) {
-                image(three_bomb, x, y, total_screen / total_tiles, total_screen / total_tiles);
+                img = three_bomb;
             } else if (touching_bomb_count == 4) {
-                image(four_bomb, x, y, total_screen / total_tiles, total_screen / total_tiles);
+                img = four_bomb;
             } else if (touching_bomb_count == 5) {
-                image(five_bomb, x, y, total_screen / total_tiles, total_screen / total_tiles);
+                img = five_bomb;
             }else if (touching_bomb_count == 6) {
-                image(six_bomb, x, y, total_screen / total_tiles, total_screen / total_tiles);
+                img = six_bomb;
             } else if (touching_bomb_count == 7) {
-                image(seven_bomb, x, y, total_screen / total_tiles, total_screen / total_tiles);
-            } else if (touching_bomb_count == 8) {
-                image(eight_bomb, x, y, total_screen / total_tiles, total_screen / total_tiles);
-            } 
+                img = seven_bomb;
+            } else {
+                img = eight_bomb; 
+            }
+            
+            // Dsiplay image
+            image(img, x, y, tile_width, tile_width);
         }
 
         if (marked_as_bomb) {
@@ -94,8 +99,6 @@ class Tile {
 
         // Clicked on the bomb
         if (lost && bomb) {
-            fill(155, 155, 155);
-            //square(x, y, total_screen / total_tiles);
             image(bomb_clicked, x, y, total_screen / total_tiles, total_screen / total_tiles);
         }
     }
