@@ -79,6 +79,10 @@ void mouseClicked () {
     int y_clicked = (int) (mouseY / (width / total_tiles));
 
     int tile_index = (total_tiles * x_clicked) + y_clicked;
+    
+    if (tile_index > Math.pow(total_tiles, 2)) {
+        return;
+    }
 
     if (mouseButton == LEFT) {
         // Mark as not bomb when the user left clicks on square
@@ -99,63 +103,93 @@ void mouseClicked () {
 
 // Only works for surrounded tiles atm
 void click_around (int index) {
-    boolean right = !((index - 8) % total_tiles == 0);
-    boolean left = !(index % total_tiles == 0);
+    boolean above = (index % total_tiles != 0);
+    boolean below = (index % total_tiles != (total_tiles - 1));
 
-    boolean below = (index < (Math.pow(total_tiles, 2) - total_tiles));
-    boolean above = (index > (total_tiles - 1));
+    boolean right = (index < (Math.pow(total_tiles, 2) - total_tiles));
+    boolean left = (index > (total_tiles - 1));
 
+    // -1 is up
+    // + 1 is down
 
-    // HOW TO DO THIS PROPERLY?
+    // + tiles is right
+    // - tiles is left
 
-    // Array with clicked values, if its 0 add all surroundings
+    if (left) {
+        board_tiles[index - total_tiles].marked_safe = true;  
+        
+        if (above) {
+            board_tiles[(index - total_tiles) - 1].marked_safe = true;
+        }
+        if (below) {
+            board_tiles[(index - total_tiles) + 1].marked_safe = true;
+        }
+    }
+
+    if (right) {
+        board_tiles[index + total_tiles].marked_safe = true;  
+
+        if (above) {
+            board_tiles[(index + total_tiles) - 1].marked_safe = true;
+        }
+        if (below) {
+            board_tiles[(index + total_tiles) + 1].marked_safe = true;
+        }
+    }
+
+    if (below)  {
+        board_tiles[index + 1].marked_safe = true;
+    }
+
+    if (above) {
+        board_tiles[index - 1].marked_safe = true;
+    }
 }
 
 // Try to pass a function as a parameter to the following function, and make the function run that parameter in all existing surrounding boxes
 
 // Once the array has been made, count the ammount of bombs surrounding 
 void count_around (int tile_index) {
-    // TODO: Change variable names, right is down because of how the array is set up
-    boolean right = !((tile_index - 8) % total_tiles == 0);
-    boolean left = !(tile_index % total_tiles == 0);
+    boolean above = (tile_index % total_tiles != 0);
+    boolean below = (tile_index % total_tiles != (total_tiles - 1));
 
-    boolean below = (tile_index < (Math.pow(total_tiles, 2) - total_tiles));
-    boolean above = (tile_index > (total_tiles - 1));
+    boolean right = (tile_index < (Math.pow(total_tiles, 2) - total_tiles));
+    boolean left = (tile_index > (total_tiles - 1));
 
     // If the bomb is not on the top row, it should add a bomb count to the tile above it
     if (above) {
-        board_tiles[tile_index - (total_tiles)].neighbour_inc();
+        board_tiles[tile_index - 1].neighbour_inc();
 
         if (right) {
-            board_tiles[(tile_index - (total_tiles)) + 1].neighbour_inc();
+            board_tiles[(tile_index - 1) + total_tiles].neighbour_inc();
         }
 
         if (left) {
-            board_tiles[(tile_index - (total_tiles)) - 1].neighbour_inc();         
+            board_tiles[(tile_index - 1) - total_tiles].neighbour_inc();
         }
     }
 
     // If the bomb is not on the bottom row, it should have a tile below it
     if (below) {
-        board_tiles[tile_index + (total_tiles)].neighbour_inc();
+        board_tiles[tile_index + 1].neighbour_inc();
 
         if (right) {
-            board_tiles[(tile_index + (total_tiles)) + 1].neighbour_inc();
+            board_tiles[(tile_index + 1) + total_tiles].neighbour_inc();
         }
 
         if (left) {
-            board_tiles[(tile_index + (total_tiles)) - 1].neighbour_inc();
+            board_tiles[(tile_index + 1) - total_tiles].neighbour_inc();
         }
     }
 
     //Should have a tile to the right
     if (right) {
-        board_tiles[tile_index + 1].neighbour_inc();
+        board_tiles[tile_index + total_tiles].neighbour_inc();
     }
 
     //Should have a tile to the left
     if (left) {
-        board_tiles[tile_index - 1].neighbour_inc(); // Seems to be running for 80
+        board_tiles[tile_index - total_tiles].neighbour_inc(); // Seems to be running for 80
     }
 }
 
