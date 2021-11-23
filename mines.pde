@@ -53,9 +53,23 @@ void setup() {
 }
 
 void draw () {
-    // Display the board
-    for (Tile tile : board_tiles) {
-        tile.display(width, (float) total_tiles, lost);
+    if (!lost) {
+        // Display the board
+        for (Tile tile : board_tiles) {
+            tile.display(width, (float) total_tiles, lost);
+        }
+    } else {
+        // Show where all bombs are
+        for (Tile tile : board_tiles) {
+            if (tile.bomb) {
+                tile.display(width, (float) total_tiles, lost);
+            }
+
+            textSize(100);
+            fill(255, 0, 100);
+            textAlign(CENTER);
+            text("You have lost!", 400, 400);
+        }
     }
 }
 
@@ -87,7 +101,9 @@ void mouseClicked () {
     if (mouseButton == LEFT) {
         // Mark as not bomb when the user left clicks on square
         // If this returns true, it means the user clicked on a bomb, game should be over
-        lost = board_tiles[tile_index].is_safe();
+        if (!lost) {
+            lost = board_tiles[tile_index].is_safe();
+        }
 
         // TODO: Make a function that will click in all surrounding tiles if the tile being clicked on has a surrounding bomb count of 0 (recursive function?)
         board_tiles[tile_index].marked_safe = true;  
