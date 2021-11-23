@@ -44,12 +44,6 @@ class Tile {
         touching_bomb_count++;
     }    
 
-    boolean is_safe () {
-        marked_safe = true;
-        
-        return bomb;                
-    }
-
     // Make a method to increase the neighbout count of all surrounding tiles, this will be more efficient than having each tile check 
     // if their neighbours have a bomb        
 
@@ -62,7 +56,7 @@ class Tile {
         if (!marked_safe) { 
             fill(80, 80, 80); 
             // TODO: CHange this to an image
-            image(unclicked_tile, x, y, total_screen / total_tiles, total_screen / total_tiles);
+            image(unclicked_tile, x, y, tile_width, tile_width);
         }
 
         if (marked_safe && !bomb) {
@@ -94,12 +88,12 @@ class Tile {
         }
 
         if (marked_as_bomb) {
-            image(flagged, x, y, total_screen / total_tiles, total_screen / total_tiles);
+            image(flagged, x, y, tile_width, tile_width);
         }
 
         // Clicked on the bomb
         if (lost && bomb) {
-            image(bomb_clicked, x, y, total_screen / total_tiles, total_screen / total_tiles);
+            image(bomb_clicked, x, y, tile_width, tile_width);
         }
     }
 }

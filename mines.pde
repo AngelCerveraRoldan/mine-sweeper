@@ -102,10 +102,9 @@ void mouseClicked () {
         // Mark as not bomb when the user left clicks on square
         // If this returns true, it means the user clicked on a bomb, game should be over
         if (!lost) {
-            lost = board_tiles[tile_index].is_safe();
+            lost = board_tiles[tile_index].bomb;
         }
 
-        // TODO: Make a function that will click in all surrounding tiles if the tile being clicked on has a surrounding bomb count of 0 (recursive function?)
         board_tiles[tile_index].marked_safe = true;  
 
         if (board_tiles[tile_index].touching_bomb_count == 0) {
