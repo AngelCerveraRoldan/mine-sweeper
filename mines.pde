@@ -1,11 +1,12 @@
 Tile[] board_tiles;
 
 boolean lost = false;
-boolean hard_mode = false;
+boolean won = false;
 
-// Hard mode is an 18 * 18 tile board, easy mode is a 9 * 9 tile game
-int total_tiles = hard_mode ? 25 : 18; // MAX 20!!
-int bomb_count = total_tiles + 5;
+int safe_tile_count = 0;
+
+int total_tiles = 18;
+int bomb_count = total_tiles + 8;
 
 // TODO: This two arrays should really be related
 int[] bomb_x_coord = new int[bomb_count];
@@ -53,24 +54,39 @@ void setup() {
 }
 
 void draw () {
-    if (!lost) {
-        // Display the board
-        for (Tile tile : board_tiles) {
-            tile.display(width, (float) total_tiles, lost);
-        }
-    } else {
-        // Show where all bombs are
+    print(safe_tile_count + " ");
+    println(Math.pow(total_tiles, 2) - bomb_count);
+    
+    for (Tile tile : board_tiles) {
+        tile.display(width, (float) total_tiles, lost);
+    }
+
+    if (safe_tile_count == (Math.pow(total_tiles, 2) - bomb_count)) {
+        won = true;
+    }
+
+    if (lost) {
         for (Tile tile : board_tiles) {
             if (tile.bomb) {
-                tile.display(width, (float) total_tiles, lost);
-            }
+              tile.display(width, (float) total_tiles, lost);
+          }
+         }
 
-            textSize(100);
-            fill(255, 0, 100);
-            textAlign(CENTER);
-            text("You have lost!", 400, 400);
-        }
+        textSize(100);
+        fill(255, 0, 100);
+        textAlign(CENTER);
+        text("You have lost!", 400, 400);
     }
+
+    if (won) {
+        textSize(100);
+        fill(0, 255, 100);
+        textAlign(CENTER);
+        text("You have won!", 400, 400);
+    }
+
+
+    
 }
 
 // TODO: Change the way we check if a tile should or shouln't be a bomb, as it is very inefficient
@@ -94,25 +110,37 @@ void mouseClicked () {
 
     int tile_index = (total_tiles * x_clicked) + y_clicked;
     
-    if (tile_index > Math.pow(total_tiles, 2)) {
-        return;
+    if (!won && !lost) { 
+        if (tile_index > Math.pow(total_tiles, 2)) {
+            return;
+        }
+
+        if (mouseButton == LEFT) {
+            // Mark as not bomb when the user left clicks on square
+            // If this returns true, it means the user clicked on a bomb, game should be over
+            if (!lost) {
+                lost = board_tiles[tile_index].bomb;
+            }
+            
+            if (!board_tiles[tile_index].marked_as_bomb) {
+
+                safe_tile(tile_index);
+
+                if (board_tiles[tile_index].touching_bomb_count == 0 && board_tiles[tile_index].bomb == false) {
+                    click_around(tile_index);
+                }
+            }
+        } else if (mouseButton == RIGHT) {
+            // Mark as bomb when the user right clicks on square
+            board_tiles[tile_index].marked_as_bomb = !board_tiles[tile_index].marked_as_bomb;
+        }
     }
+}
 
-    if (mouseButton == LEFT) {
-        // Mark as not bomb when the user left clicks on square
-        // If this returns true, it means the user clicked on a bomb, game should be over
-        if (!lost) {
-            lost = board_tiles[tile_index].bomb;
-        }
-
-        board_tiles[tile_index].marked_safe = true;  
-
-        if (board_tiles[tile_index].touching_bomb_count == 0) {
-            click_around(tile_index);
-        }
-    } else if (mouseButton == RIGHT) {
-        // Mark as bomb when the user right clicks on square
-        board_tiles[tile_index].marked_as_bomb = !board_tiles[tile_index].marked_as_bomb;
+void safe_tile(int index) {
+    if (board_tiles[index].marked_safe == false && board_tiles[index].bomb == false) {
+        safe_tile_count++;
+        board_tiles[index].marked_safe = true; 
     }
 }
 
@@ -131,33 +159,33 @@ void click_around (int index) {
     // - tiles is left
 
     if (left) {
-        board_tiles[index - total_tiles].marked_safe = true;  
-        
+        safe_tile(index - total_tiles);
+
         if (above) {
-            board_tiles[(index - total_tiles) - 1].marked_safe = true;
+            safe_tile((index - total_tiles) - 1); 
         }
         if (below) {
-            board_tiles[(index - total_tiles) + 1].marked_safe = true;
+            safe_tile((index - total_tiles) + 1);
         }
     }
 
     if (right) {
-        board_tiles[index + total_tiles].marked_safe = true;  
+        safe_tile(index + total_tiles);
 
         if (above) {
-            board_tiles[(index + total_tiles) - 1].marked_safe = true;
+            safe_tile((index + total_tiles) - 1);
         }
         if (below) {
-            board_tiles[(index + total_tiles) + 1].marked_safe = true;
+            safe_tile((index + total_tiles) + 1);
         }
     }
 
     if (below)  {
-        board_tiles[index + 1].marked_safe = true;
+        safe_tile(index + 1);
     }
 
     if (above) {
-        board_tiles[index - 1].marked_safe = true;
+        safe_tile(index - 1);
     }
 }
 

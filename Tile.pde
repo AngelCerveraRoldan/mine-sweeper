@@ -92,7 +92,7 @@ class Tile {
         }
 
         // Clicked on the bomb
-        if (lost && bomb) {
+        if (true && bomb) {
             image(bomb_clicked, x, y, tile_width, tile_width);
         }
     }
