@@ -4,8 +4,8 @@ A minesweeper game made with processing as the first year CS171 project
 
 ## Todos:
 
-- [ ] Change tile design to use images
-- [ ] When the user clicks on a bomb
-    - [ ] Game is over
-    - [ ] All other bombs should be displayed
-- [ ] When the user clicks on a tile with a 0 as its neighbour count, automatically click every tile around it
+- [x] Change tile design to use images
+- [x] When the user clicks on a bomb
+    - [x] Game is over
+    - [x] All other bombs should be displayed
+- [x] When the user clicks on a tile with a 0 as its neighbour count, automatically click every tile around it
