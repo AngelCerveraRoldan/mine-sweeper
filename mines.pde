@@ -1,250 +1,213 @@
-Tile[] board_tiles;
+// This variable will be used to generage a grid of the desired width and height
+int tiles_per_row = 15;
+Tile[] tiles = new Tile[(int) Math.pow(tiles_per_row, 2)];
+
+int tile_width;
+// Because the bombs are randomly generated, we dont know how many there will be before the game begings, so every time we generate a bomb
+// we will add one to the bomb count, this variable will be used to see if the user has won later
+int bomb_count = 0;
+// This variable will have one added onto it every time the a tile that is not a bomb is clicked
+int safe_click = 0;
 
 boolean lost = false;
-boolean won = false;
+boolean won = false; 
 
-int safe_tile_count = 0;
-
-int total_tiles = 18;
-int bomb_count = total_tiles + 8;
-
-// TODO: This two arrays should really be related
-int[] bomb_x_coord = new int[bomb_count];
-int[] bomb_y_coord = new int[bomb_count];
-
-void setup() {
+void setup () {
     size(800, 800);
+    tile_width = width / tiles_per_row;
 
-    board_tiles = new Tile[(int) Math.pow(total_tiles, 2)];
-
-    // Generate coordinates for the bombs
-    for (int i = 0; i < bomb_count; i++) {
-        // TODO: The same (x, y) coordinate could be generated twice, this would result in as little as 1 bomb in the entire map
-        // but the odds of that happening are small, so this error doesn't need to be fixed right away
-        int rand_x_coord = int(random(0, total_tiles));
-        int rand_y_coord = int(random(0, total_tiles));
-
-        bomb_x_coord[i] = rand_x_coord;
-        bomb_y_coord[i] = rand_y_coord;
-    }
-    
-    // Make the board
-    int tile_index = 0;
-
-    for (int vertical = 0; vertical < total_tiles; vertical++) {
-        for (int horizontal = 0; horizontal < total_tiles; horizontal ++) {
-            boolean is_bomb_coordinate = false;
-
-            // Check if bomb_x_coord[n] = horizontal and bomb_y_coord[n] = vertical
-            // Check if the tile should be a bomb
-            if (bomb_check(bomb_x_coord, horizontal, bomb_y_coord, vertical)) {
-                is_bomb_coordinate = true;
-            } 
-
-            board_tiles[tile_index++] = new Tile(vertical * (width / total_tiles), horizontal * (width / total_tiles), is_bomb_coordinate);
+    // Generate tiles
+    for (int i = 0; i < Math.pow(tiles_per_row, 2); i ++) {
+        int[] coords = index_to_coord(i);
+        
+        // Roughly 20% of tiles will be bombs
+        boolean bomb_random = false;
+        if ((random(99) + 1) < 20) {
+            bomb_random = true;
+            bomb_count ++;
         }
+
+        tiles[i] = new Tile(coords[0] * tile_width, coords[1] * tile_width, bomb_random);        
     }
-    
-    // Find the number of bombs surrounding each tiles
-    for (int i = 0; i < Math.pow(total_tiles, 2); i++) {
-        if (board_tiles[i].bomb) {
+
+    // Update surrounding bomb count
+    for (int i = 0; i < Math.pow(tiles_per_row, 2); i ++) {
+        if (tiles[i].is_bomb) {
             count_around(i);
         }
     }
 }
 
 void draw () {
-    print(safe_tile_count + " ");
-    println(Math.pow(total_tiles, 2) - bomb_count);
-    
-    for (Tile tile : board_tiles) {
-        tile.display(width, (float) total_tiles, lost);
-    }
-
-    if (safe_tile_count == (Math.pow(total_tiles, 2) - bomb_count)) {
+    // If the number of tiles that have been clicked on is the same as the total tiles minus the number of bombs, 
+    // that means every non bomb tile has been clicked and the player wins
+    if (safe_click == (int) Math.pow(tiles_per_row, 2) - bomb_count) {
         won = true;
     }
 
-    if (lost) {
-        for (Tile tile : board_tiles) {
-            if (tile.bomb) {
-              tile.display(width, (float) total_tiles, lost);
-          }
-         }
+    if (!won && !lost) {
+        // Draw tiles
+        for (Tile tile : tiles) {
+            tile.display(tiles_per_row, tile_width);
+        }
+    } else if (won) {
+        for (Tile tile : tiles) {
+            tile.been_clicked = true;
 
+            tile.display(tiles_per_row, tile_width);
+        }
+
+        // Show you win text
+        textSize(100);
+        fill(0, 255, 100);
+        textAlign(CENTER);
+        text("You have won!", 400, 400);
+    } else if (lost) {
+        for (Tile tile : tiles) {
+            tile.been_clicked = true;
+
+            tile.display(tiles_per_row, tile_width);
+        }
+
+        // Show you loose text
         textSize(100);
         fill(255, 0, 100);
         textAlign(CENTER);
         text("You have lost!", 400, 400);
     }
 
-    if (won) {
-        textSize(100);
-        fill(0, 255, 100);
-        textAlign(CENTER);
-        text("You have won!", 400, 400);
-    }
 
-
-    
 }
 
-// TODO: Change the way we check if a tile should or shouln't be a bomb, as it is very inefficient
-boolean bomb_check (int[] x_arr, int x, int[] y_arr, int y) {
-    int arr_len = x_arr.length;
-    
-    for (int i = 0; i < arr_len; i++) {
-        if ( y_arr[i] == y && x_arr[i] == x ) {
-            return true;
-        }
-    }
+void mouseClicked() {
+    int[] clicked_coordinates = {
+        (int) (mouseX) / (width / tiles_per_row),
+        (int) (mouseY) / (width / tiles_per_row),
+    };
 
-    return false;
+    int clicked_index = clicked_coordinates[0] + clicked_coordinates[1] * tiles_per_row;
+    if (mouseButton == LEFT) {
+        click_on_tile(clicked_index);
+    } else if (mouseButton == RIGHT && !tiles[clicked_index].been_clicked) {
+        tiles[clicked_index].been_flagged = !tiles[clicked_index].been_flagged;
+    } 
 }
 
-// Click on what you think isnt a bomb
-void mouseClicked () {
-    // Save the coordinate of the mouse when it clicks
-    int x_clicked = (int) (mouseX / (width / total_tiles));
-    int y_clicked = (int) (mouseY / (width / total_tiles));
-
-    int tile_index = (total_tiles * x_clicked) + y_clicked;
-    
-    if (!won && !lost) { 
-        if (tile_index > Math.pow(total_tiles, 2)) {
-            return;
+// This function will be used when a tile is left clicked
+// A tile is left clicked when the player thinks that it is NOT a bomb
+// If it isnt a bomb, we will turn it over to show how many bombs surround it, if it is a bomb, the player will lose
+void click_on_tile(int index) {
+    // We first make sure that the tile hasnt been flagged or already cicked
+    // It it has already been clicked, then there is no point on clicking on it again as it would do nothing
+    // If it has been flagged, that means the player thinks that the tile hides a bomb, so if a flagged tile is clicked we do nothing to avoid accidental clicks
+    if (!tiles[index].been_clicked && !tiles[index].been_flagged) {        
+        if (lost == false) {
+            // Clicking on a tile returns true if its a bomb
+            lost = tiles[index].main_click();
+            safe_click ++;
+            println(safe_click);
         }
+    } 
 
-        if (mouseButton == LEFT) {
-            // Mark as not bomb when the user left clicks on square
-            // If this returns true, it means the user clicked on a bomb, game should be over
-            if (!lost) {
-                lost = board_tiles[tile_index].bomb;
+    // If the surrounding bomb count is 0, then we know that every tile surrounding it is NOT a bomb
+    // We will run a recursive call that will click on every tile that exist surrounding a tile that has a surrounding bomb count of 0
+    // This is important (specially in big grids) as it would be very annoying for the player to have to click, say 50 tiles that all have a 0 surrouding bomb count
+    if (tiles[index].surrounding_bomb_count == 0) {
+        int[] coordinate = index_to_coord(index);
+        int x = coordinate[0];
+        int y = coordinate[1];
+
+        // The following if statments check if the tile exists, and if it does it clicks on it
+        // For example, the tiles on the very right of the board, will not have a tile to their right to be clicked on
+
+        if (y != 0 && (!tiles[index - tiles_per_row].been_clicked && !tiles[index - tiles_per_row].been_flagged)) {
+            click_on_tile(index - tiles_per_row);
+
+            if (x != 0 && (!tiles[(index - tiles_per_row) - 1].been_clicked && !tiles[(index - tiles_per_row) - 1].been_flagged)) {
+                click_on_tile((index - tiles_per_row) - 1);
             }
-            
-            if (!board_tiles[tile_index].marked_as_bomb) {
 
-                safe_tile(tile_index);
-
-                if (board_tiles[tile_index].touching_bomb_count == 0 && board_tiles[tile_index].bomb == false) {
-                    click_around(tile_index);
-                }
+            if (x != (tiles_per_row - 1) && (!tiles[(index - tiles_per_row) + 1].been_clicked && !tiles[(index - tiles_per_row) + 1].been_flagged)) {
+                click_on_tile((index - tiles_per_row) + 1);
             }
-        } else if (mouseButton == RIGHT) {
-            // Mark as bomb when the user right clicks on square
-            board_tiles[tile_index].marked_as_bomb = !board_tiles[tile_index].marked_as_bomb;
+        }
+        
+        if (y != (tiles_per_row - 1) && (!tiles[index + tiles_per_row].been_clicked && !tiles[index + tiles_per_row].been_flagged)) {
+            click_on_tile(index + tiles_per_row);
+
+            if (x != 0 && (!tiles[(index + tiles_per_row) - 1].been_clicked && !tiles[(index + tiles_per_row) - 1].been_flagged)) {
+                click_on_tile((index + tiles_per_row) - 1);
+            }
+
+            if (x != (tiles_per_row - 1) && (!tiles[(index + tiles_per_row) + 1].been_clicked && !tiles[(index + tiles_per_row) + 1].been_flagged)) {
+                click_on_tile((index + tiles_per_row) + 1);
+            }
+        }
+
+        if (x != 0 && (!tiles[index - 1].been_clicked && !tiles[index - 1].been_flagged)) {
+            click_on_tile(index - 1);
+        }
+
+        if (x != (tiles_per_row - 1) && (!tiles[index + 1].been_clicked && !tiles[index + 1].been_flagged)) {
+            click_on_tile(index + 1);
+        }
+    }
+
+}
+
+// This function will translate a tiles index, to its (x, y) coordinate
+int[] index_to_coord (int index) {
+    int[] coordinates = new int[2];
+
+    // Find x coordinate
+    coordinates[0] = index % tiles_per_row;
+
+    // Find y coordinate
+    coordinates[1] = (int) index / tiles_per_row;
+
+    return coordinates;
+}
+
+// This function will add one to the surrounding bomb count to every tile around its index
+// Run this function passing the index of each bomb as a parameter
+void count_around (int index) {
+    int x = index_to_coord(index)[0];
+    int y = index_to_coord(index)[1];
+
+    if (y != (tiles_per_row - 1)) { // In this case there will be a tile right above
+        // index below is the same index + the ammount of tiles in a row
+        tiles[index + tiles_per_row].surrounding_bomb_count ++;    
+    }
+
+    if (y != 0) { // In this case there must be a tile right above
+        // Index above is the index - the tiles in a row
+        tiles[index - tiles_per_row].surrounding_bomb_count ++;        
+    }
+
+    if (x != (tiles_per_row - 1)) { // There will be a tile to the right
+        tiles[index + 1].surrounding_bomb_count ++;
+
+        if (y != 0) { // This has a tile to the right and up
+            tiles[(index + 1) - tiles_per_row].surrounding_bomb_count ++;
+        }
+
+        if (y != (tiles_per_row - 1)) { // This has a tile to the right and down
+            tiles[(index + 1) + tiles_per_row].surrounding_bomb_count ++;
+        }
+    }
+
+    if (x != 0) {// There will be a tile to the left
+        tiles[index - 1].surrounding_bomb_count ++;
+
+        if (y != 0) { // This has a tile to the left and up
+            tiles[(index - 1) - tiles_per_row].surrounding_bomb_count++;
+        }
+
+        if (y != (tiles_per_row - 1)) { // This has a tile to the left and down
+            tiles[(index - 1) + tiles_per_row].surrounding_bomb_count ++;
         }
     }
 }
 
-void safe_tile(int index) {
-    if (board_tiles[index].marked_safe == false && board_tiles[index].bomb == false) {
-        safe_tile_count++;
-        board_tiles[index].marked_safe = true; 
-    }
-}
-
-// Only works for surrounded tiles atm
-void click_around (int index) {
-    boolean above = (index % total_tiles != 0);
-    boolean below = (index % total_tiles != (total_tiles - 1));
-
-    boolean right = (index < (Math.pow(total_tiles, 2) - total_tiles));
-    boolean left = (index > (total_tiles - 1));
-
-    // -1 is up
-    // + 1 is down
-
-    // + tiles is right
-    // - tiles is left
-
-    if (left) {
-        safe_tile(index - total_tiles);
-
-        if (above) {
-            safe_tile((index - total_tiles) - 1); 
-        }
-        if (below) {
-            safe_tile((index - total_tiles) + 1);
-        }
-    }
-
-    if (right) {
-        safe_tile(index + total_tiles);
-
-        if (above) {
-            safe_tile((index + total_tiles) - 1);
-        }
-        if (below) {
-            safe_tile((index + total_tiles) + 1);
-        }
-    }
-
-    if (below)  {
-        safe_tile(index + 1);
-    }
-
-    if (above) {
-        safe_tile(index - 1);
-    }
-}
-
-// Try to pass a function as a parameter to the following function, and make the function run that parameter in all existing surrounding boxes
-
-// Once the array has been made, count the ammount of bombs surrounding 
-void count_around (int tile_index) {
-    boolean above = (tile_index % total_tiles != 0);
-    boolean below = (tile_index % total_tiles != (total_tiles - 1));
-
-    boolean right = (tile_index < (Math.pow(total_tiles, 2) - total_tiles));
-    boolean left = (tile_index > (total_tiles - 1));
-
-    // If the bomb is not on the top row, it should add a bomb count to the tile above it
-    if (above) {
-        board_tiles[tile_index - 1].neighbour_inc();
-
-        if (right) {
-            board_tiles[(tile_index - 1) + total_tiles].neighbour_inc();
-        }
-
-        if (left) {
-            board_tiles[(tile_index - 1) - total_tiles].neighbour_inc();
-        }
-    }
-
-    // If the bomb is not on the bottom row, it should have a tile below it
-    if (below) {
-        board_tiles[tile_index + 1].neighbour_inc();
-
-        if (right) {
-            board_tiles[(tile_index + 1) + total_tiles].neighbour_inc();
-        }
-
-        if (left) {
-            board_tiles[(tile_index + 1) - total_tiles].neighbour_inc();
-        }
-    }
-
-    //Should have a tile to the right
-    if (right) {
-        board_tiles[tile_index + total_tiles].neighbour_inc();
-    }
-
-    //Should have a tile to the left
-    if (left) {
-        board_tiles[tile_index - total_tiles].neighbour_inc(); // Seems to be running for 80
-    }
-}
 
 
-// Function to check if an array contains an integer
-// NO GENERICS IN PROCESSING :(
-boolean array_contains(int[] arr, int find) {
-    for (int num : arr) {
-        if (num == find) {
-            return true;
-        }
-    }
-
-    return false;
-}
